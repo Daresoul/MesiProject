@@ -1,0 +1,50 @@
+using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
+using Avalonia.Layout;
+using Avalonia.Media;
+
+namespace Client;
+
+public class HeaderStartBlock : BaseRect
+{
+    private double RectHeight = 100;
+    
+    public HeaderStartBlock(SaveUiElement saveUiElement) : this()
+    {
+        this.Id = saveUiElement.Id;
+        _saveUiElement = saveUiElement;
+    }
+    
+    public HeaderStartBlock()
+    {
+        var grid = new Grid
+        {
+            Width = 200,
+            Height = RectHeight
+        };
+        
+        var rectangle = new Rectangle
+        {
+            Fill = Brushes.LimeGreen,
+        };
+
+        var text = new TextBlock()
+        {
+            Text = "Header",
+            FontSize = 30,
+            TextAlignment = TextAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        
+        grid.Children.Add(rectangle);
+        grid.Children.Add(text);
+        
+        
+        this.Content = grid;
+    }
+
+    public override double GetBlockHeight()
+    {
+        return RectHeight;
+    }
+}

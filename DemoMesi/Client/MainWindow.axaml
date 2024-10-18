@@ -1,0 +1,157 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:client="clr-namespace:Client"
+        mc:Ignorable="d" d:DesignWidth="1500" d:DesignHeight="1500"
+        x:Class="Client.MainWindow"
+        Title="AvaloniaApplication1">
+    <Canvas x:Name="MainCanvas" Background="White">
+        <client:KeyValueRect
+            Name="InitialKeyValueRect"
+            Canvas.Left="0"
+            Canvas.Top="50"
+            PointerPressed="OnPointerPressed"
+            PointerMoved="OnPointerMoved"
+            PointerReleased="OnPointerReleased"
+            isStatic="True"
+        />
+        
+        <client:ObjectRect
+            Name="InitialObjectRect"
+            Canvas.Left="0"
+            Canvas.Top="150"
+            PointerPressed="OnPointerPressed"
+            PointerMoved="OnPointerMoved"
+            PointerReleased="OnPointerReleased"
+            isStatic="True"
+            />
+        
+        <client:ArrayRect
+            Name="InitialArrayRect"
+            Canvas.Left="0"
+            Canvas.Top="250"
+            PointerPressed="OnPointerPressed"
+            PointerMoved="OnPointerMoved"
+            PointerReleased="OnPointerReleased"
+            isStatic="True"
+        />
+        
+        <client:HeaderKeyValueBlock
+            Name="InitialHeaderKeyValueRect"
+            Canvas.Left="0"
+            Canvas.Top="350"
+            PointerPressed="OnPointerPressed"
+            PointerMoved="OnPointerMoved"
+            PointerReleased="OnPointerReleasedHeader"
+            isStatic="True"
+        />
+        
+        <Button Content="Start Server" Name="StartButton" Click="StartServer_Click"
+                Width="150" Height="50"
+                Background="Green"
+                Foreground="White"
+                BorderBrush="Black"
+                BorderThickness="2"
+                Opacity="1"
+                Canvas.Right="50"
+                Canvas.Top="25"
+                >
+            <Button.Styles>
+                <Style Selector="Button:pointerover">
+                    <Setter Property="Background" Value="DarkGreen"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </Style>
+            </Button.Styles>
+        </Button>
+
+        <Button Content="Stop Server" Name="StopButton" Click="StopServer_Click"
+                Width="150" Height="50"
+                Background="Red"
+                Foreground="White"
+                BorderBrush="Black"
+                BorderThickness="2"
+                Opacity="1"
+                Canvas.Right="50"
+                Canvas.Top="100"
+                >
+            <Button.Styles>
+                <Style Selector="Button:pointerover">
+                    <Setter Property="Background" Value="DarkRed"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </Style>
+            </Button.Styles>
+        </Button>
+        
+        <Button Content="Send Outbound"
+                Name="SendOutbound"
+                Width="150" Height="50"
+                Background="DarkOrange"
+                Foreground="White"
+                BorderBrush="Black"
+                BorderThickness="2"
+                Opacity="1"
+                Canvas.Right="50"
+                Canvas.Top="175"
+                Click="SendOutboundMessage"/>
+        
+        <Button Content="Send Local Server"
+                Name="SendServer"
+                Width="150" Height="50"
+                Background="DarkOrange"
+                Foreground="White"
+                BorderBrush="Black"
+                BorderThickness="2"
+                Opacity="1"
+                Canvas.Right="50"
+                Canvas.Top="250"
+                Click="SendLocalMessage"/>
+        
+        <Grid
+            Canvas.Bottom="25"
+            Canvas.Right="25">
+            <Rectangle
+                Width="200"
+                Height="325"
+                Fill="Aqua"
+                Opacity="0.1"
+                />
+            <ScrollViewer
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Disabled"
+                Width="200"
+                Height="325">
+                <TextBlock
+                    Foreground="Black"
+                    Margin="10, 10, 10, 10"
+                    TextWrapping="Wrap"
+                    Width="200"
+                    Name="ResponseTextBox"/>
+            </ScrollViewer>
+        </Grid>
+
+        <Button Content="Save Settings"
+                Name="Save"
+                Width="150" Height="50"
+                Background="DarkGreen"
+                Foreground="White"
+                BorderBrush="Black"
+                BorderThickness="2"
+                Opacity="1"
+                Canvas.Right="250"
+                Canvas.Bottom="125"
+                Click="SaveConfig"/>
+        
+        <Button Content="Discard Settings"
+                Name="Discard"
+                Width="150" Height="50"
+                Background="DarkRed"
+                Foreground="White"
+                BorderBrush="Black"
+                BorderThickness="2"
+                Opacity="1"
+                Canvas.Right="250"
+                Canvas.Bottom="50"
+                Click="DiscardConfig"/>
+    </Canvas>
+</Window>
