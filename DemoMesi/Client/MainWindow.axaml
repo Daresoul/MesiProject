@@ -5,7 +5,7 @@
         xmlns:client="clr-namespace:Client"
         mc:Ignorable="d" d:DesignWidth="1500" d:DesignHeight="1500"
         x:Class="Client.MainWindow"
-        Title="AvaloniaApplication1">
+        Title="Webserver Config Client">
     <Canvas x:Name="MainCanvas" Background="White">
         <client:KeyValueRect
             Name="InitialKeyValueRect"
@@ -14,7 +14,7 @@
             PointerPressed="OnPointerPressed"
             PointerMoved="OnPointerMoved"
             PointerReleased="OnPointerReleased"
-            isStatic="True"
+            IsStatic="True"
         />
         
         <client:ObjectRect
@@ -24,7 +24,7 @@
             PointerPressed="OnPointerPressed"
             PointerMoved="OnPointerMoved"
             PointerReleased="OnPointerReleased"
-            isStatic="True"
+            IsStatic="True"
             />
         
         <client:ArrayRect
@@ -34,7 +34,7 @@
             PointerPressed="OnPointerPressed"
             PointerMoved="OnPointerMoved"
             PointerReleased="OnPointerReleased"
-            isStatic="True"
+            IsStatic="True"
         />
         
         <client:HeaderKeyValueBlock
@@ -44,7 +44,7 @@
             PointerPressed="OnPointerPressed"
             PointerMoved="OnPointerMoved"
             PointerReleased="OnPointerReleasedHeader"
-            isStatic="True"
+            IsStatic="True"
         />
         
         <Button Content="Start Server" Name="StartButton" Click="StartServer_Click"

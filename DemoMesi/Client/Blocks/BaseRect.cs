@@ -10,18 +10,16 @@ public class BaseRect : UserControl
     public BaseRect? NextBlock = null;
     public BaseContainer? PartOf = null;
     public BaseRect? NextBlockOf = null;
-    private bool BegunMoving = false;
-    private bool BegunSnapping = false;
     
     private bool _isStatic = false;
     
-    public bool isStatic
+    public bool IsStatic
     {
         get => _isStatic;
         set => _isStatic = value;
     }
     
-    public SaveUiElement _saveUiElement;
+    public SaveUiElement? SaveUiElement;
 
 
     public virtual String GetJsonValue(int depth = 0)
@@ -33,8 +31,6 @@ public class BaseRect : UserControl
     {
         if (NextBlock == this) return;
         
-        BegunMoving = true;
-        
         var offsetX = currentPosition.X - lastPosition.X;
         var offsetY = currentPosition.Y - lastPosition.Y;
                 
@@ -45,7 +41,6 @@ public class BaseRect : UserControl
         Canvas.SetTop(this, top + offsetY);
         
         NextBlock?.MoveChildren(new Point(currentPosition.X, currentPosition.Y), lastPosition);
-        BegunMoving = false;
     }
 
     public virtual void SnapIntoPlace(double left)

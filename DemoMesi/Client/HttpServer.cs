@@ -17,24 +17,23 @@ namespace HTTPServer
 {
     public class HttpServer
     {
-        private static TcpListener? myListener;
-        private static int port = int.TryParse(ConfigurationManager.AppSettings["inbound_port"], out int parsedPort) ? parsedPort : 5050;
-        private static IPAddress localAddr = IPAddress.Parse(ConfigurationManager.AppSettings["inbound_address"] ?? "127.0.0.1"); 
-        public static String dbConnectionString = ConfigurationManager.AppSettings["ConnectionStrings"] ?? "Data Source=mydatabase.db;";
-        public static int MessagesReceived = 0;
-        public static bool _isRunning = false;
-        public static MainWindow MainWindow;
+        private static TcpListener? _myListener;
+        private static int _port = int.TryParse(ConfigurationManager.AppSettings["inbound_port"], out int parsedPort) ? parsedPort : 5050;
+        private static IPAddress _localAddr = IPAddress.Parse(ConfigurationManager.AppSettings["inbound_address"] ?? "127.0.0.1"); 
+        public static String DbConnectionString = ConfigurationManager.AppSettings["ConnectionStrings"] ?? "Data Source=mydatabase.db;";
+        public static bool IsRunning = false;
+        public static MainWindow? MainWindow;
         public static Dictionary<String, String> Headers = new Dictionary<String, String>();
 
         public static void InitServer(MainWindow mainWindow)
         {
             MainWindow = mainWindow;
-            StartServer(localAddr, port);
+            StartServer(_localAddr, _port);
         }
         
         public static void StartServer(IPAddress ipAddress, int port)
         {
-            if (_isRunning)
+            if (IsRunning)
             {
                 Console.WriteLine("Server is already running. Stop the server first.");
                 return;
@@ -52,9 +51,9 @@ namespace HTTPServer
                 }
             }
 
-            myListener = new TcpListener(ipAddress, port);
-            myListener.Start();
-            _isRunning = true;
+            _myListener = new TcpListener(ipAddress, port);
+            _myListener.Start();
+            IsRunning = true;
 
             Console.WriteLine($"Web Server Running on {ipAddress} on port {port}... Press ^C to Stop...");
             Thread listenerThread = new Thread(new ThreadStart(StartListen));
@@ -63,13 +62,13 @@ namespace HTTPServer
         
         public static void StopServer()
         {
-            if (_isRunning)
+            if (IsRunning)
             {
-                _isRunning = false;
+                IsRunning = false;
 
                 try
                 {
-                    myListener?.Stop();
+                    _myListener?.Stop();
                     Console.WriteLine("Server stopped.");
                 }
                 catch (SocketException ex)
@@ -93,7 +92,7 @@ namespace HTTPServer
 
         private static void StartListen()
         {
-            using (var connection = new SqliteConnection(dbConnectionString))
+            using (var connection = new SqliteConnection(DbConnectionString))
             {
                 connection.Open();
 
@@ -109,25 +108,23 @@ namespace HTTPServer
                     Console.WriteLine("Table created successfully.");
                 }
 
-                while (_isRunning)
+                while (IsRunning)
                 {
-                    if (!myListener?.Pending() ?? false)
+                    if (!_myListener?.Pending() ?? false)
                     {
                         Thread.Sleep(100);
                         continue;
                     }
 
-                    TcpClient client = myListener!.AcceptTcpClient();
+                    TcpClient client = _myListener!.AcceptTcpClient();
                     NetworkStream stream = client.GetStream();
                     
                     byte[] requestBytes = new byte[1024];
                     int bytesRead = stream.Read(requestBytes, 0, requestBytes.Length);
 
-                    MessagesReceived++;
-
                     string request = Encoding.UTF8.GetString(requestBytes, 0, bytesRead);
                     
-                    Console.WriteLine(request);
+                    Console.WriteLine($"Request inbound: {request}");
 
                     var requestHeaders = ParseHeaders(request);
 
@@ -135,14 +132,14 @@ namespace HTTPServer
                     {
                         Console.WriteLine("Updating the request on the UI");
                         DateTime currentUtcTime = DateTime.UtcNow;
-                        MainWindow.UpdateLastRequest(request, currentUtcTime);
+                        MainWindow?.UpdateLastRequest(request, currentUtcTime);
                     });
                     
                     var requestFirstLine = requestHeaders.requestType.Split(" ");
 
-                    string httpVersion = requestFirstLine.LastOrDefault();
-                    string contentType = requestHeaders.headers.GetValueOrDefault("Accept");
-                    string contentEncoding = requestHeaders.headers.GetValueOrDefault("Accept-Encoding");
+                    string httpVersion = requestFirstLine.LastOrDefault()!;
+                    string contentType = requestHeaders.headers.GetValueOrDefault("Accept")!;
+                    string contentEncoding = requestHeaders.headers.GetValueOrDefault("Accept-Encoding")!;
                     
                     if (requestFirstLine.Length < 2)
                     {
@@ -188,8 +185,8 @@ namespace HTTPServer
 
             bool inboundSettingsChanged = false;
             
-            IPAddress inboundAddressIP = localAddr;
-            int inboundPortNumber = port;
+            IPAddress inboundAddressIp = _localAddr;
+            int inboundPortNumber = _port;
 
             try {
                 Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
@@ -200,7 +197,7 @@ namespace HTTPServer
                     
                     if (root.TryGetProperty("outbound_address", out JsonElement outboundAddressElement))
                     {
-                        string outboundAddress = outboundAddressElement.GetString();
+                        string? outboundAddress = outboundAddressElement.GetString();
                         
                         AddOrUpdateConfig(config, "outbound_address", outboundAddress);
                         updatedSettings.Append("outbound_address\n");
@@ -208,7 +205,7 @@ namespace HTTPServer
                     }
                     if (root.TryGetProperty("outbound_port", out JsonElement outboundPortElement))
                     {
-                        string outboundPort = outboundPortElement.GetString();
+                        string? outboundPort = outboundPortElement.GetString();
                         if (int.TryParse(outboundPort, out _))
                         {
                             AddOrUpdateConfig(config, "outbound_port", outboundPort);
@@ -223,7 +220,7 @@ namespace HTTPServer
                     
                     if (root.TryGetProperty("path", out JsonElement pathElement))
                     {
-                        string path = pathElement.GetString();
+                        string? path = pathElement.GetString();
                         AddOrUpdateConfig(config, "path", path);
                         updatedSettings.Append("path\n");
                         Console.WriteLine("Setting outbound port: " + path);
@@ -231,12 +228,12 @@ namespace HTTPServer
                     
                     if (root.TryGetProperty("inbound_address", out JsonElement inboundAddressElement))
                     {
-                        string inboundAddress = inboundAddressElement.GetString();
+                        string? inboundAddress = inboundAddressElement.GetString();
                         bool parsed = false;
                         
-                        if (inboundAddress.Equals("*", StringComparison.Ordinal))
+                        if (inboundAddress != null && inboundAddress.Equals("*", StringComparison.Ordinal))
                         {
-                            inboundAddressIP = IPAddress.Any;
+                            inboundAddressIp = IPAddress.Any;
                             inboundSettingsChanged = true;
                             parsed = true;
                         }
@@ -244,7 +241,7 @@ namespace HTTPServer
                         {
                             try
                             {
-                                inboundAddressIP = IPAddress.Parse(inboundAddress);
+                                inboundAddressIp = IPAddress.Parse(inboundAddress);
                                 inboundSettingsChanged = true;
                                 parsed = true;
                             }
@@ -265,7 +262,7 @@ namespace HTTPServer
                     
                     if (root.TryGetProperty("inbound_port", out JsonElement inboundPortElement))
                     {
-                        string inboundPort = inboundPortElement.GetString();
+                        string? inboundPort = inboundPortElement.GetString();
                         if (int.TryParse(inboundPort, out _))
                         {
                             inboundSettingsChanged = true;
@@ -330,7 +327,7 @@ namespace HTTPServer
                     
                     if (inboundSettingsChanged)
                     {
-                        ChangeIPAddress(inboundAddressIP, inboundPortNumber);
+                        ChangeIPAddress(inboundAddressIp, inboundPortNumber);
                     }
                     
                     config.Save(ConfigurationSaveMode.Modified);
@@ -371,7 +368,7 @@ namespace HTTPServer
             stream.Close();
         }
 
-        private static void AddOrUpdateConfig(Configuration config, String key, String value)
+        private static void AddOrUpdateConfig(Configuration config, String key, string? value)
         {
             if (config.AppSettings.Settings[key] == null)
             {

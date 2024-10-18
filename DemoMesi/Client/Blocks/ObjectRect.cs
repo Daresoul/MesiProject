@@ -8,7 +8,7 @@ namespace Client
         public ObjectRect(SaveUiElement saveUiElement) : this()
         {
             this.Id = saveUiElement.Id;
-            this._saveUiElement = saveUiElement;
+            this.SaveUiElement = saveUiElement;
         }
         public ObjectRect() : base()
         {

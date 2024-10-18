@@ -7,7 +7,7 @@ public class HeaderKeyValueBlock : KeyValueBase
     public HeaderKeyValueBlock(SaveUiElement saveUiElement) : this()
     {
         this.Id = saveUiElement.Id;
-        this._saveUiElement = saveUiElement;
+        this.SaveUiElement = saveUiElement;
     }
     public HeaderKeyValueBlock() : base()
     {

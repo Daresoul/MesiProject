@@ -16,11 +16,22 @@ namespace Client
         public Guid? Next { get; set; }
         public Guid? NextOf { get; set; }
         public Guid? PartOf { get; set; }
-        
+
         public SaveUiElement()
         {
+            Id = Guid.NewGuid();
+            TypeName = "";
+            PositionX = 0.0;
+            PositionY = 0.0;
+            Value1 = null;
+            Value2 = null;
+            Value3 = null;
+            Contains = null;
+            Next = null;
+            NextOf = null;
+            PartOf = null;
         }
-
+        
         public SaveUiElement(Guid id, Type type, double positionX, double positionY, BaseRect? next, BaseRect? nextOf, BaseContainer? partOf, string? value1, string? value2, string? value3, List<Guid> contains)
         {
             Id = id;

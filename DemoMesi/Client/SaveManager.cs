@@ -9,8 +9,8 @@ namespace Client;
 public class SaveManager
 {
     private readonly string _stateFilePath = "appState.json";
-    
-    public List<SaveUiElement> _saveStates = new List<SaveUiElement>();
+
+    private readonly List<SaveUiElement> _saveStates = new List<SaveUiElement>();
     
     public void SaveState(List<BaseRect> baseRects, StartRect startRect, HeaderStartBlock headerStartBlock)
     {
@@ -50,7 +50,6 @@ public class SaveManager
                     break;
             }
             
-            Console.WriteLine(new Point(rect.Bounds.Left, rect.Bounds.Top));
             _saveStates.Add(new SaveUiElement(
                 rect.Id,
                 rect.GetType(),
@@ -82,8 +81,7 @@ public class SaveManager
         if (File.Exists(_stateFilePath))
         {
             string jsonString = File.ReadAllText(_stateFilePath);
-            return JsonSerializer.Deserialize<SaveState>(jsonString);
-
+            return JsonSerializer.Deserialize<SaveState>(jsonString) ??  new SaveState();
         }
 
         return new SaveState();

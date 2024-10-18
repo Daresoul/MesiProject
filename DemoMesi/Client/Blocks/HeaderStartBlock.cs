@@ -12,7 +12,7 @@ public class HeaderStartBlock : BaseRect
     public HeaderStartBlock(SaveUiElement saveUiElement) : this()
     {
         this.Id = saveUiElement.Id;
-        _saveUiElement = saveUiElement;
+        SaveUiElement = saveUiElement;
     }
     
     public HeaderStartBlock()

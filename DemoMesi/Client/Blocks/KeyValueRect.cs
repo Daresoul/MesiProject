@@ -14,7 +14,7 @@ namespace Client
         public KeyValueRect(SaveUiElement saveUiElement) : this()
         {
             this.Id = saveUiElement.Id;
-            this._saveUiElement = saveUiElement;
+            this.SaveUiElement = saveUiElement;
         }
         public KeyValueRect() : base()
         {

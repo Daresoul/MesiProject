@@ -28,51 +28,47 @@ namespace Client
         private bool _isDragging;
         private Point _lastPosition;
         
-        private NameValueCollection _config;
-        
-        private Canvas main;
-        private StartRect bodyStart;
-        private HeaderStartBlock headerStart;
-        public SaveManager SaveManager;
-        private Button startButton;
-        private Button stopButton;
-        private TextBlock ResponseTextBlock;
+        private Canvas? _main;
+        private StartRect? _bodyStart;
+        private HeaderStartBlock? _headerStart;
+        private SaveManager _saveManager = null!;
+        private TextBlock? _responseTextBlock;
 
         public MainWindow()
         {
             InitializeComponent();
             
-            main = this.FindControl<Canvas>("MainCanvas");
-            ResponseTextBlock = this.FindControl<TextBlock>("ResponseTextBox");
+            _main = this.FindControl<Canvas>("MainCanvas");
+            _responseTextBlock = this.FindControl<TextBlock>("ResponseTextBox");
             var initialKeyValue = this.FindControl<KeyValueRect>("InitialKeyValueRect");
-            initialKeyValue.PointerPressed += CreateKeyValueRect;
+            if (initialKeyValue != null) initialKeyValue.PointerPressed += CreateKeyValueRect;
             
             var initialObject = this.FindControl<ObjectRect>("InitialObjectRect");
-            initialObject.PointerPressed += CreateObjectRect;
+            if (initialObject != null) initialObject.PointerPressed += CreateObjectRect;
             
             var initialArray = this.FindControl<ArrayRect>("InitialArrayRect");
-            initialArray.PointerPressed += CreateArrayRect;
+            if (initialArray != null) initialArray.PointerPressed += CreateArrayRect;
             
             var initialHeaderKeyValueRect = this.FindControl<HeaderKeyValueBlock>("InitialHeaderKeyValueRect");
-            initialHeaderKeyValueRect.PointerPressed += CreateHeaderKeyValueRect;
+            if (initialHeaderKeyValueRect != null) initialHeaderKeyValueRect.PointerPressed += CreateHeaderKeyValueRect;
 
-            bodyStart = new StartRect();
-            bodyStart.isStatic = false;
+            _bodyStart = new StartRect();
+            _bodyStart.IsStatic = false;
             
-            Canvas.SetLeft(bodyStart, 350);
-            Canvas.SetTop(bodyStart, 25);
+            Canvas.SetLeft(_bodyStart, 350);
+            Canvas.SetTop(_bodyStart, 25);
             
-            main.Children.Add(bodyStart);
+            _main?.Children.Add(_bodyStart);
             
-            headerStart = new HeaderStartBlock();
-            headerStart.isStatic = false;
+            _headerStart = new HeaderStartBlock();
+            _headerStart.IsStatic = false;
             
-            Canvas.SetLeft(headerStart, 700);
-            Canvas.SetTop(headerStart, 25);
+            Canvas.SetLeft(_headerStart, 700);
+            Canvas.SetTop(_headerStart, 25);
             
-            main.Children.Add(headerStart);
+            _main?.Children.Add(_headerStart);
 
-            using (var connection = new SqliteConnection(HttpServer.dbConnectionString))
+            using (var connection = new SqliteConnection(HttpServer.DbConnectionString))
             {
                 connection.Open();
                 
@@ -108,19 +104,19 @@ namespace Client
                 sb.Append(rect + ": " + rect.NextBlock + " - " + rect.NextBlockOf + " - " + rect.PartOf + "\n");
             }
 
-            ResponseTextBlock.Text = "All Stats: \n" + sb.ToString();
+            if (_responseTextBlock != null) _responseTextBlock.Text = "All Stats: \n" + sb.ToString();
         }
 
         public void UpdateLastRequest(String request, DateTime time)
         {
-            ResponseTextBlock.Text = $"{time.ToString("yyyy-MM-dd HH:mm:ss.fff")}:\n{request}";
+            if (_responseTextBlock != null) _responseTextBlock.Text = $"{time:yyyy-MM-dd HH:mm:ss.fff}:\n{request}";
         }
 
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
-            main = this.FindControl<Canvas>("MainCanvas");
-            SaveManager = new SaveManager();
+            _main = this.FindControl<Canvas>("MainCanvas");
+            _saveManager = new SaveManager();
             LoadState();
         }
         
@@ -132,7 +128,7 @@ namespace Client
     
             foreach (var child in parent.GetVisualChildren())
             {
-                if (child is BaseRect rect && !rect.isStatic)
+                if (child is BaseRect rect && !rect.IsStatic)
                 {
                     rectangles.Add(rect);
                 }
@@ -151,7 +147,7 @@ namespace Client
     
             foreach (var child in parent.GetVisualChildren())
             {
-                if (child is BaseRect rect && !rect.isStatic && child.GetType() != typeof(StartRect) && child.GetType() != typeof(HeaderStartBlock))
+                if (child is BaseRect rect && !rect.IsStatic && child.GetType() != typeof(StartRect) && child.GetType() != typeof(HeaderStartBlock))
                 {
                     rectangles.Add(rect);
                 }
@@ -234,7 +230,7 @@ namespace Client
 
             Dispatcher.UIThread.Post(() =>
             {
-                SaveManager.SaveState(FindAllMoveableRectangles(this), bodyStart, headerStart);
+                _saveManager.SaveState(FindAllMoveableRectangles(this), _bodyStart!, _headerStart!);
             });
         }
         
@@ -258,7 +254,7 @@ namespace Client
             
             Dispatcher.UIThread.Post(() =>
             {
-                SaveManager.SaveState(FindAllMoveableRectangles(this), bodyStart, headerStart);
+                _saveManager.SaveState(FindAllMoveableRectangles(this), _bodyStart!, _headerStart!);
             });
         }
 
@@ -268,7 +264,7 @@ namespace Client
     
             foreach (var child in parent.GetVisualChildren())
             {
-                if (child is HeaderKeyValueBlock rect && !rect.isStatic)
+                if (child is HeaderKeyValueBlock rect && !rect.IsStatic)
                 {
                     rectangles.Add(rect);
                 }
@@ -293,7 +289,7 @@ namespace Client
                    block.Bounds.Left < left + 200;
         }
 
-        private async void SendOutboundMessage(object? sender, RoutedEventArgs e)
+        private void SendOutboundMessage(object? sender, RoutedEventArgs e)
         {
             String json = FetchJson();
             Dictionary<String, String> headers = FetchHeaders();
@@ -305,7 +301,7 @@ namespace Client
                 ConfigurationManager.AppSettings["path"] ?? "");
         }
 
-        private async void SendLocalMessage(object? sender, RoutedEventArgs e)
+        private void SendLocalMessage(object? sender, RoutedEventArgs e)
         {
             var headers = new Dictionary<string, string>
             {
@@ -320,14 +316,14 @@ namespace Client
         private String FetchJson()
         {
             StringBuilder sb = new StringBuilder();
-            var currentBlock = bodyStart as BaseRect;
+            var currentBlock = _bodyStart as BaseRect;
             sb.Append("{\n");
-            while (currentBlock.NextBlock != null)
+            while (currentBlock?.NextBlock != null)
             {
                 sb.Append(currentBlock.GetJsonValue(1));
                 currentBlock = currentBlock.NextBlock;
             }
-            sb.Append(currentBlock.GetJsonValue(1));
+            sb.Append(currentBlock?.GetJsonValue(1));
             sb.Append("}");
             
             Console.WriteLine(sb.ToString());
@@ -338,12 +334,12 @@ namespace Client
         private Dictionary<String, String> FetchHeaders()
         {
             var headers = new Dictionary<String, String>();
-            var currentBlock = bodyStart.NextBlock;
-            while (currentBlock.NextBlock != null)
+            var currentBlock = _bodyStart!.NextBlock;
+            while (currentBlock?.NextBlock != null)
             {
                 if (currentBlock is HeaderKeyValueBlock headerBlock)
                 {
-                    headers.Add(headerBlock.TextBox1.Text, headerBlock.TextBox2.Text);
+                    headers.Add(headerBlock.TextBox1.Text!, headerBlock.TextBox2.Text!);
                 }
                 currentBlock = currentBlock.NextBlock;
             }
@@ -385,10 +381,10 @@ namespace Client
                     string fullResponse = $"Message recieved at: {currentUtcTime.ToString("yyyy-MM-dd HH:mm:ss.fff")}\n{statusLine}\r\n{headersString}\r\n\r\n{responseBody}";
                     
                     Console.WriteLine(responseBody);
-                    ResponseTextBlock.Foreground = Brushes.Black;
-                    ResponseTextBlock.Text = fullResponse;
+                    _responseTextBlock!.Foreground = Brushes.Black;
+                    _responseTextBlock.Text = fullResponse;
                 }
-                catch (HttpRequestException e) when (response != null)
+                catch (HttpRequestException) when (response != null)
                 {
                     string statusLine = $"HTTP/{response.Version} {(int)response.StatusCode} {response.ReasonPhrase}";
                     
@@ -400,14 +396,14 @@ namespace Client
                     
                     string fullResponse = $"Message recieved at: {currentUtcTime.ToString("yyyy-MM-dd HH:mm:ss.fff")}\n{statusLine}\r\n{headersString}\r\n\r\n{responseBody}";
                     
-                    ResponseTextBlock.Foreground = Brushes.Red;
-                    ResponseTextBlock.Text = fullResponse;
+                    _responseTextBlock!.Foreground = Brushes.Red;
+                    _responseTextBlock.Text = fullResponse;
                     Console.WriteLine($"Failed request:\n {fullResponse}");
                 }
                 catch (Exception e)
                 {
-                    ResponseTextBlock.Foreground = Brushes.Red;
-                    ResponseTextBlock.Text = $"Unexpected error: {e.Message}";
+                    _responseTextBlock!.Foreground = Brushes.Red;
+                    _responseTextBlock.Text = $"Unexpected error: {e.Message}";
                     Console.WriteLine($"Unexpected error: {e.Message}");
                 }
             }
@@ -418,11 +414,11 @@ namespace Client
             if (sender is KeyValueRect rect)
             {
                 rect.PointerPressed -= CreateKeyValueRect;
-                rect.isStatic = false;
+                rect.IsStatic = false;
                 
                 
                 var keyVal = new KeyValueRect();
-                keyVal.isStatic = true;
+                keyVal.IsStatic = true;
             
                 keyVal.PointerPressed += OnPointerPressed;
                 keyVal.PointerPressed += CreateKeyValueRect;
@@ -432,7 +428,7 @@ namespace Client
                 Canvas.SetLeft(keyVal, rect.Bounds.Left);
                 Canvas.SetTop(keyVal, rect.Bounds.Top);
             
-                main.Children.Add(keyVal);
+                _main?.Children.Add(keyVal);
             }
         }
         
@@ -441,10 +437,10 @@ namespace Client
             if (sender is ObjectRect rect)
             {
                 rect.PointerPressed -= CreateObjectRect;
-                rect.isStatic = false;
+                rect.IsStatic = false;
                 
                 var objectRect = new ObjectRect();
-                objectRect.isStatic = true;
+                objectRect.IsStatic = true;
                 objectRect.PointerPressed += OnPointerPressed;
                 objectRect.PointerPressed += CreateObjectRect;
                 objectRect.PointerMoved += OnPointerMoved;
@@ -453,7 +449,7 @@ namespace Client
                 Canvas.SetLeft(objectRect, rect.Bounds.Left);
                 Canvas.SetTop(objectRect, rect.Bounds.Top);
 
-                main.Children.Add(objectRect);
+                _main?.Children.Add(objectRect);
             }
         }
 
@@ -462,10 +458,10 @@ namespace Client
             if (sender is ArrayRect rect)
             {
                 rect.PointerPressed -= CreateArrayRect;
-                rect.isStatic = false;
+                rect.IsStatic = false;
                 
                 var arrayRect = new ArrayRect();
-                arrayRect.isStatic = true;
+                arrayRect.IsStatic = true;
                 arrayRect.PointerPressed += OnPointerPressed;
                 arrayRect.PointerPressed += CreateArrayRect;
                 arrayRect.PointerMoved += OnPointerMoved;
@@ -474,7 +470,7 @@ namespace Client
                 Canvas.SetLeft(arrayRect, rect.Bounds.Left);
                 Canvas.SetTop(arrayRect, rect.Bounds.Top);
 
-                main.Children.Add(arrayRect);
+                _main?.Children.Add(arrayRect);
             }
         }
         
@@ -483,10 +479,10 @@ namespace Client
             if (sender is HeaderKeyValueBlock rect)
             {
                 rect.PointerPressed -= CreateHeaderKeyValueRect;
-                rect.isStatic = false;
+                rect.IsStatic = false;
                 
                 var headerBlock = new HeaderKeyValueBlock();
-                headerBlock.isStatic = true;
+                headerBlock.IsStatic = true;
                 headerBlock.PointerPressed += OnPointerPressed;
                 headerBlock.PointerPressed += CreateHeaderKeyValueRect;
                 headerBlock.PointerMoved += OnPointerMoved;
@@ -495,13 +491,13 @@ namespace Client
                 Canvas.SetLeft(headerBlock, rect.Bounds.Left);
                 Canvas.SetTop(headerBlock, rect.Bounds.Top);
 
-                main.Children.Add(headerBlock);
+                _main?.Children.Add(headerBlock);
             }
         }
 
         private void LoadState()
         {
-            var saveState = SaveManager.LoadState();
+            var saveState = _saveManager.LoadState();
 
             foreach (var uiElement in saveState.Elements)
             {
@@ -534,7 +530,7 @@ namespace Client
                     Canvas.SetTop(y, uiElement.PositionY);
                     Canvas.SetLeft(y, uiElement.PositionX);
                     
-                    main.Children.Add(y);
+                    _main?.Children.Add(y);
                     
                 }
                 catch (Exception ex)
@@ -549,32 +545,36 @@ namespace Client
 
                 foreach (var rect in rects)
                 {
-                    Console.WriteLine(rect.Id + ": " + rect._saveUiElement.Next + " - " + rect._saveUiElement.NextOf + " - " + rect._saveUiElement.PartOf);
-                    if (rect._saveUiElement.Next != null) rect.NextBlock = FindRectBasedOnId(rect._saveUiElement.Next, rects);
-                    if (rect._saveUiElement.NextOf != null) rect.NextBlockOf = FindRectBasedOnId(rect._saveUiElement.NextOf, rects);
-                    if (rect._saveUiElement.PartOf != null) rect.PartOf = FindBaseContainerById(rect._saveUiElement.PartOf, rects);
+                    //Console.WriteLine(rect.Id + ": " + rect.SaveUiElement.Next + " - " + rect.SaveUiElement.NextOf + " - " + rect.SaveUiElement.PartOf);
+                    if (rect.SaveUiElement!.Next != null) rect.NextBlock = FindRectBasedOnId(rect.SaveUiElement.Next, rects);
+                    if (rect.SaveUiElement!.NextOf != null) rect.NextBlockOf = FindRectBasedOnId(rect.SaveUiElement.NextOf, rects);
+                    if (rect.SaveUiElement!.PartOf != null) rect.PartOf = FindBaseContainerById(rect.SaveUiElement.PartOf, rects);
 
                     switch (rect)
                     {
                         case KeyValueRect keyValueRect:
-                            keyValueRect.TextBox1.Text = keyValueRect._saveUiElement.Value1;
-                            keyValueRect.TextBox2.Text = keyValueRect._saveUiElement.Value2;
+                            keyValueRect.TextBox1.Text = keyValueRect.SaveUiElement!.Value1;
+                            keyValueRect.TextBox2.Text = keyValueRect.SaveUiElement!.Value2;
                             break;
                         case ObjectRect objectRect:
-                            objectRect.TextBox.Text = objectRect._saveUiElement.Value1;
-                            foreach (var guid in objectRect._saveUiElement.Contains)
+                            objectRect.TextBox.Text = objectRect.SaveUiElement!.Value1;
+                            foreach (var guid in objectRect.SaveUiElement!.Contains)
                             {
                                 var block = FindRectBasedOnId(guid, rects);
                                 if (block != null) objectRect.Properties.Add(block);
                             }
                             break;
                         case ArrayRect arrayRect:
-                            arrayRect.TextBox.Text = arrayRect._saveUiElement.Value1;
-                            foreach (var guid in arrayRect._saveUiElement.Contains)
+                            arrayRect.TextBox.Text = arrayRect.SaveUiElement!.Value1;
+                            foreach (var guid in arrayRect.SaveUiElement!.Contains)
                             {
                                 var block = FindRectBasedOnId(guid, rects);
                                 if (block != null) arrayRect.Properties.Add(block);
                             }
+                            break;
+                        case HeaderKeyValueBlock headerBlock:
+                            headerBlock.TextBox1.Text = headerBlock.SaveUiElement!.Value1;
+                            headerBlock.TextBox2.Text = headerBlock.SaveUiElement!.Value2;
                             break;
                         default:
                             break;
@@ -582,8 +582,8 @@ namespace Client
                 }
 
                 var startNextBlock = FindRectBasedOnId(saveState.StartBlockNext, rects);
-                bodyStart.NextBlock = startNextBlock;
-                if (bodyStart.NextBlock != null) bodyStart.NextBlock.NextBlockOf = bodyStart;
+                _bodyStart!.NextBlock = startNextBlock;
+                if (_bodyStart.NextBlock != null) _bodyStart.NextBlock.NextBlockOf = _bodyStart;
 
                 foreach (var rect in rects)
                 {
@@ -629,7 +629,7 @@ namespace Client
         
         private void StartServer_Click(object? sender, RoutedEventArgs e)
         {
-            if (!HttpServer._isRunning)
+            if (!HttpServer.IsRunning)
             {
                 HttpServer.InitServer(this);
                 Console.WriteLine("Server started.");
@@ -643,7 +643,7 @@ namespace Client
         
         private void StopServer_Click(object? sender, RoutedEventArgs e)
         {
-            if (HttpServer._isRunning)
+            if (HttpServer.IsRunning)
             {
                 HttpServer.StopServer();
                 Console.WriteLine("Server stopped.");
@@ -656,16 +656,16 @@ namespace Client
 
         private void DiscardConfig(object? sender, RoutedEventArgs e)
         {
-            SaveManager.DiscardSaveStates();
+            _saveManager.DiscardSaveStates();
             foreach (var rect in FindAllMoveableRectangles(this))
             {
-                main.Children.Remove(rect);
+                _main!.Children.Remove(rect);
             }
         }
 
         private void SaveConfig(object? sender, RoutedEventArgs e)
         {
-            SaveManager.SaveState(FindAllMoveableRectangles(this), bodyStart, headerStart);
+            _saveManager.SaveState(FindAllMoveableRectangles(this), _bodyStart!, _headerStart!);
         }
     }
     

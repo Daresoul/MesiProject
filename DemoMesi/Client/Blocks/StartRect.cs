@@ -14,7 +14,7 @@ public class StartRect : BaseRect
     public StartRect(SaveUiElement saveUiElement) : this()
     {
         this.Id = saveUiElement.Id;
-        _saveUiElement = saveUiElement;
+        SaveUiElement = saveUiElement;
     }
     
     public StartRect()
